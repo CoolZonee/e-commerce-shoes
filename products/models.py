@@ -49,6 +49,7 @@ class Product(models.Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     type = models.ForeignKey(Type, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.upc + ' - ' + self.name
