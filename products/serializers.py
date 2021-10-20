@@ -36,7 +36,7 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['upc', 'name', 'quantity', 'gender', 'price',
-                  'cost', 'desc', 'brand', 'supplier', 'type', 'date']
+                  'cost', 'desc', 'brand', 'supplier', 'type', 'date', 'active', 'image_path']
 
 
 class ProductSerializer(serializers.ModelSerializer):

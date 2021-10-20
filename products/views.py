@@ -27,47 +27,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ProductDetailsAPIView(APIView):
-
-    def get_object(self, id):
-        try:
-            return Product.objects.get(upc=id)
-
-        except Product.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-    def get(self, request, id):
-        product = self.get_object(id)
-        serializer = ProductRetrieveSerializer(product)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def put(self, request, id):
-        product = self.get_object(id)
-        serializer = ProductSerializer(product, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            retrieve_serializer = ProductRetrieveSerializer(serializer)
-            return Response(retrieve_serializer.data, status=status.HTTP_204_NO_CONTENT)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, id):
-        product = self.get_object(id)
-        product.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@csrf_exempt
-def brand_list(request):
-    if request.method == 'GET':
-        brands = Brand.objects.all()
-        serializer = BrandSerializer(brands, many=True)
-        return JsonResponse(serializer.data, safe=False)
-
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = BrandSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+class GenderViewSet(viewsets.ModelViewSet):
+    queryset = Gender.objects.all()
+    serializer_class = GenderSerializer

@@ -50,6 +50,7 @@ class Product(models.Model):
     type = models.ForeignKey(Type, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
+    image_path = models.CharField(max_length=500, default="img_no_img.png")
 
     def __str__(self):
         return self.upc + ' - ' + self.name
