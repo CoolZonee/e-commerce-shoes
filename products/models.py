@@ -40,7 +40,6 @@ class Brand(models.Model):
 class Product(models.Model):
     upc = models.CharField(primary_key=True, max_length=12)
     name = models.CharField(max_length=100)
-    quantity = models.PositiveIntegerField(default=0)
     gender = models.ManyToManyField(Gender)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     cost = models.DecimalField(max_digits=6, decimal_places=2)
@@ -54,3 +53,13 @@ class Product(models.Model):
 
     def __str__(self):
         return self.upc + ' - ' + self.name
+
+
+class ProductDetails(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    color = models.CharField(max_length=50)
+    quantity = models.PositiveIntegerField(default=0)
+    size = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.product.upc + " - " + self.product.name

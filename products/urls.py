@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'product', ProductViewSet)
+router.register(r'product-details', ProductDetailsViewSet)
 router.register(r'gender', GenderViewSet)
 
 urlpatterns = [

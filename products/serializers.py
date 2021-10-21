@@ -35,11 +35,25 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['upc', 'name', 'quantity', 'gender', 'price',
+        fields = ['upc', 'name', 'gender', 'price',
                   'cost', 'desc', 'brand', 'supplier', 'type', 'date', 'active', 'image_path']
 
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
+        fields = '__all__'
+
+
+class ProductDetailsRetrieveSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = ProductDetails
+        fields = ['product', 'color', 'quantity', 'size']
+
+
+class ProductDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductDetails
         fields = '__all__'
