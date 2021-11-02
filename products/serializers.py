@@ -46,7 +46,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailsRetrieveSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
+    product = ProductRetrieveSerializer(read_only=True)
 
     class Meta:
         model = ProductDetails
