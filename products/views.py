@@ -38,12 +38,16 @@ class ProductDetailsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk):
-        queryset = ProductDetails.objects.all()
-        product = generics.get_object_or_404(queryset, product=pk)
-        serializer = ProductDetailsRetrieveSerializer(product)
+        queryset = ProductDetails.objects.filter(product__upc=pk)
+        serializer = ProductDetailsRetrieveSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GenderViewSet(viewsets.ModelViewSet):
     queryset = Gender.objects.all()
     serializer_class = GenderSerializer
+
+
+class BrandViewSet(viewsets.ModelViewSet):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer

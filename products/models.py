@@ -41,6 +41,7 @@ class Product(models.Model):
     upc = models.CharField(primary_key=True, max_length=12)
     name = models.CharField(max_length=100)
     gender = models.ManyToManyField(Gender)
+    color = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     cost = models.DecimalField(max_digits=6, decimal_places=2)
     desc = models.TextField()
@@ -57,7 +58,6 @@ class Product(models.Model):
 
 class ProductDetails(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    color = models.CharField(max_length=50)
     quantity = models.PositiveIntegerField(default=0)
     size = models.CharField(max_length=50)
 

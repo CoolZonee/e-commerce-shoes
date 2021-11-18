@@ -35,7 +35,7 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['upc', 'name', 'gender', 'price',
+        fields = ['upc', 'name', 'gender', 'color', 'price',
                   'cost', 'desc', 'brand', 'supplier', 'type', 'date', 'active', 'image_path']
 
 
@@ -50,7 +50,7 @@ class ProductDetailsRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductDetails
-        fields = ['product', 'color', 'quantity', 'size']
+        fields = ['product', 'quantity', 'size']
 
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
