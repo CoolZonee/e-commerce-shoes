@@ -10,6 +10,7 @@ from rest_framework import mixins
 from rest_framework import viewsets
 from .models import *
 from .serializers import *
+import json
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -17,14 +18,22 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
     def list(self, request):
+        gender = request.GET.get('gender')
         queryset = Product.objects.all().order_by("-date")
-        serializer = ProductRetrieveSerializer(queryset, many=True)
+        if gender:
+            queryset = Product.objects.filter(
+                gender__name=gender).order_by("-date")
+        serializer = ProductSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk):
+        gender = request.GET.get('gender')
         queryset = Product.objects.all()
+        if gender:
+            queryset = Product.objects.filter(
+                upc=pk, gender__name=gender)
         product = generics.get_object_or_404(queryset, upc=pk)
-        serializer = ProductRetrieveSerializer(product)
+        serializer = ProductSerializer(product)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -38,7 +47,9 @@ class ProductDetailsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk):
+
         queryset = ProductDetails.objects.filter(product__upc=pk)
+
         serializer = ProductDetailsRetrieveSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
