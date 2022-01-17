@@ -27,6 +27,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk):
+        token = request.COOKIES.get('token')
+        print(token)
         gender = request.GET.get('gender')
         queryset = Product.objects.all()
         if gender:

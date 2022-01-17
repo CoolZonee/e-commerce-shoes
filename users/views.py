@@ -1,12 +1,24 @@
-from rest_framework import response
-from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import *
-import jwt
-import datetime
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.middleware import csrf
+from django.contrib.auth import authenticate
+from django.conf import settings
+from .authenticate import CustomAuthentication
+from rest_framework_simplejwt.views import TokenViewBase
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 
 class Register(APIView):
@@ -19,55 +31,50 @@ class Register(APIView):
 
 class Login(APIView):
     def post(self, request):
-        email = request.data['email']
-        password = request.data['password']
-
-        user = User.objects.filter(email=email).first()
+        data = request.data
+        response = Response()
+        username = data.get('email', None)
+        password = data.get('password', None)
+        user = authenticate(username=username, password=password)
 
         if user is None:
-            raise AuthenticationFailed("User not found!")
+            raise AuthenticationFailed("Invalid Credentials!")
 
-        if not user.check_password(password):
-            raise AuthenticationFailed("Incorrect password!")
+        token = get_tokens_for_user(user)
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+            value=token["access"],
+            expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+        )
 
-        payload = {
-            'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2),
-            'iat': datetime.datetime.now()
-        }
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['REFRESH_COOKIE'],
+            value=token["refresh"],
+            expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+        )
 
-        token = jwt.encode(payload, 'secret',
-                           algorithm='HS256')
-
-        response = Response()
-
-        response.set_cookie(key='token', value=token, httponly=True)
-        response.data = {
-            "token": token
-        }
-
+        csrf.get_token(request)
+        serializer = UserSerializer(user)
+        response.data = {"Success": "Login successfully", "data": serializer.data}
         return response
 
 
 class UserView(APIView):
-    def get(self, request):
-        token = request.COOKIES.get('token')
 
-        if not token:
-            raise AuthenticationFailed("Unauthenticated!")
-
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Unauthenticated!")
-
-        user = User.objects.get(id=payload['id'])
+    def post(self, request):
+        user = request.user
         serializer = UserSerializer(user)
-
         return Response(serializer.data)
 
 
 class DeleteUserView(APIView):
+
     def delete(self, request, id):
         user = User.objects.get(id=id)
         serializer = UserSerializer(user)
@@ -76,10 +83,40 @@ class DeleteUserView(APIView):
 
 
 class LogoutView(APIView):
+
     def post(self, request):
         response = Response()
-        response.delete_cookie('token')
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        response.delete_cookie("csrftoken")
         response.data = {
             'message': 'Success Logout'
         }
+        return response
+
+
+class RefreshTokenView(APIView):
+    authentication_classes = [CustomAuthentication]
+
+    def get(self, request):
+        data = {"refresh": request.COOKIES.get(
+                settings.SIMPLE_JWT['REFRESH_COOKIE'])}
+        print(data)
+        serializer = TokenRefreshSerializer(data=data)
+        response = Response()
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+                value=serializer.validated_data['access'],
+                expires=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+            )
+            response.data = {"Success": "Updated token successfully"}
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
         return response
